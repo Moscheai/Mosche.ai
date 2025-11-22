@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Mosche.ai</title>
+</head>
+<body>
+  <h1>Willkommen auf mosche.github.io!</h1>
+  <p>Deine KI-Seite wird hier laufen.</p>
+</body>
+</html>
