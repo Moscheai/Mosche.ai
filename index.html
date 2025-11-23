@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mosche AI — Gradient Edition (C)</title>
+<link rel="stylesheet" href="style.css"/>
+<script defer src="config.js"></script>
+<script defer src="script.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Mosche <span>AI</span></div>
+  <nav>
+    <a href="#image">Image</a>
+    <a href="#video">Video</a>
+    <a href="#text">Text</a>
+  </nav>
+</header>
+
+<main>
+  <section id="hero">
+    <h1>Mosche AI — Gradient Edition</h1>
+    <p>Create stunning images & short videos with hyper-real, colorful gradients and modern UI.</p>
+  </section>
+
+  <section id="image" class="card">
+    <h2>Text → Image</h2>
+    <textarea id="img-prompt" placeholder="Describe the scene... (e.g. 'futuristic city at sunrise, ultra-detailed')"></textarea>
+    <div class="controls">
+      <select id="img-size"><option value="512">512</option><option value="768">768</option><option value="1024">1024</option></select>
+      <button id="img-btn">Generate Image</button>
+      <button id="upscale-btn">Upscale 2×</button>
+    </div>
+    <div id="img-result" class="result"></div>
+  </section>
+
+  <section id="video" class="card">
+    <h2>Text → Short Video</h2>
+    <textarea id="vid-prompt" placeholder="Describe the motion (e.g. 'flying through neon canyon')"></textarea>
+    <div class="controls">
+      <label>Frames <input id="vid-frames" type="number" min="4" max="24" value="8"/></label>
+      <button id="vid-btn">Generate Video</button>
+    </div>
+    <div id="vid-result" class="result"></div>
+  </section>
+
+  <section id="text" class="card">
+    <h2>Text → Text</h2>
+    <input id="txt-prompt" placeholder="Enter text prompt"/>
+    <button id="txt-btn">Generate Text</button>
+    <div id="txt-result" class="result"></div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 Mosche AI — Gradient Edition</p>
+</footer>
+
+</body>
+</html>
