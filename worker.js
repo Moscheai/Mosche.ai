@@ -37,7 +37,7 @@ async function handleRequest(req){
         const framePrompt = `${prompt} — cinematic motion, frame ${i+1} of ${n}`;
         const hfRes = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
           method:'POST',
-          headers:{'Authorization':`Bearer ${HUGGINGFACE_API_KEY}`,'Content-Type':'application/json'},
+          headers:{'Authorization':`Bearer ${hf_uyoJGzsdrukBHIUIocsjuYr-VTIUzxAZlgV}`,'Content-Type':'application/json'},
           body: JSON.stringify({inputs: framePrompt, options:{wait_for_model:true}})
         });
         if(!hfRes.ok){ const txt = await hfRes.text(); return new Response(JSON.stringify({error:txt}),{status:502,headers:Object.assign({'Content-Type':'application/json'},CORS)}); }
@@ -58,7 +58,7 @@ async function handleRequest(req){
       const {prompt} = await req.json();
       const openaiRes = await fetch('https://api.openai.com/v1/chat/completions',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${OPENAI_API_KEY}`},
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${sk-proj-Jikf5-mguCm7ROHhb6HRPG-jSQICsk7XV1cjpHWj-LMtC3HqPzTUYULX-GGelvPKAkDeo-QkqKmt3BlbkFJBD7aL_6GL84ldgg0Nyr2l-vj3zVPjNCEqm-m5lypySOq9oQDXkaPwEoXhi8T-yj3nYE_MICzMA}`},
         body: JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], max_tokens:600})
       });
       const data = await openaiRes.json();
