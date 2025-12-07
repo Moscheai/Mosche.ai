@@ -5,7 +5,7 @@
   <title>Mosche.ai</title>
 </head>
 <body>
-  <h1>Willkommen auf mosche.github.io!</h1>
+  <h1>Willkommen auf moscheai.github.io!</h1>
   <p>Deine KI-Seite wird hier laufen.</p>
 </body>
 </html>
