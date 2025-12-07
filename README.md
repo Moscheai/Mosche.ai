@@ -16,7 +16,7 @@ Quick setup:
      Example with Wrangler:
        wrangler secret put HUGGINGFACE_API_KEY
        wrangler secret put OPENAI_API_KEY
-   - Deploy and note the worker URL (e.g. https://moscheai-backend.example.workers.dev)
+   - Deploy and note the worker URL (https://moscheai.philippschreiner27.workers.dev)
 
 2) Configure frontend:
    - Open config.js and replace BACKEND_URL with your worker URL.
