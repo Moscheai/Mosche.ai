@@ -1,61 +1,252 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Mosche AI — Gradient Edition (C)</title>
-<link rel="stylesheet" href="style.css"/>
-<script defer src="config.js"></script>
-<script defer src="script.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MoscheAI — Web App (single file)</title>
+  <meta name="description" content="MoscheAI simple web app: prompt → generate image / text / video frames / upscale. PWA-ready." />
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa6b2;--glass:rgba(255,255,255,0.03)}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#071025 0%,#041027 100%);color:#e6eef6}
+    .wrap{max-width:980px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:20px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input[type=text],textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    textarea{min-height:120px;resize:vertical}
+    button{background:var(--accent);border:none;padding:10px 12px;border-radius:10px;color:#042029;font-weight:600;cursor:pointer}
+    .row{display:flex;gap:8px;align-items:center}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .preview img{max-width:100%;border-radius:8px;display:block}
+    .log{font-family:monospace;background:#03111a;padding:8px;border-radius:6px;color:#9fdbe8;max-height:220px;overflow:auto}
+    .small{font-size:13px;color:var(--muted)}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr} .card{padding:12px}}
+  </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">Mosche <span>AI</span></div>
-  <nav>
-    <a href="#image">Image</a>
-    <a href="#video">Video</a>
-    <a href="#text">Text</a>
-  </nav>
-</header>
+  <div class="wrap">
+    <header>
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'><rect rx='6' width='24' height='24' fill='%2306b6d4'/><text x='50%' y='55%' text-anchor='middle' font-family='Arial' font-size='12' fill='white'>MA</text></svg>" alt="logo"/>
+      <div>
+        <h1>MoscheAI — Web App</h1>
+        <div class="small">Backend: <code id="backendUrl">https://moscheai.philippschreiner27.workers.dev</code></div>
+      </div>
+    </header>
 
-<main>
-  <section id="hero">
-    <h1>Mosche AI — Gradient Edition</h1>
-    <p>Create stunning images & short videos with hyper-real, colorful gradients and modern UI.</p>
-  </section>
+    <div class="grid">
+      <div>
+        <div class="card">
+          <label for="prompt">Prompt (Bild)</label>
+          <textarea id="prompt" placeholder="z. B. 'Ein roter Drache, fliegend über schneebedeckten Bergen, Sonnenuntergang, ultra-detailliert'">Ein roter Drache, fliegend über schneebedeckten Bergen, Sonnenuntergang, ultra-detailliert</textarea>
 
-  <section id="image" class="card">
-    <h2>Text → Image</h2>
-    <textarea id="img-prompt" placeholder="Describe the scene... (e.g. 'futuristic city at sunrise, ultra-detailed')"></textarea>
-    <div class="controls">
-      <select id="img-size"><option value="512">512</option><option value="768">768</option><option value="1024">1024</option></select>
-      <button id="img-btn">Generate Image</button>
-      <button id="upscale-btn">Upscale 2×</button>
+          <div style="margin-top:8px" class="row">
+            <div style="flex:1">
+              <label for="size">Size</label>
+              <select id="size"><option>512x512</option><option selected>1024x1024</option><option>2048x2048</option></select>
+            </div>
+            <div style="width:120px">
+              <label for="model">Model</label>
+              <select id="model"><option value="black-forest-labs/FLUX.1-dev">FLUX.1-dev</option><option value="stabilityai/stable-diffusion">stable-diffusion</option></select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="genImageBtn">Generiere Bild</button>
+            <button id="downloadBtn" class="btn-ghost">Download</button>
+            <button id="clearBtn" class="btn-ghost">Clear</button>
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+
+          <label for="textPrompt">Prompt (Text)</label>
+          <input id="textPrompt" type="text" placeholder="Schreibe eine kurze Story über..." />
+          <div class="actions" style="margin-top:8px">
+            <button id="genTextBtn">Generiere Text</button>
+            <button id="clearTextBtn" class="btn-ghost">Clear</button>
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+
+          <label for="upscaleInput">Upscale → füge Base64-Bild hier ein</label>
+          <textarea id="upscaleInput" placeholder="data:image/png;base64,...."></textarea>
+          <div class="actions">
+            <button id="upscaleBtn">Upscale x2</button>
+            <button id="pasteClipboard" class="btn-ghost">Paste</button>
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+
+          <label for="videoPrompt">Video Prompt (Frames)</label>
+          <input id="videoPrompt" type="text" placeholder="Kurzer Prompt für Video" />
+          <div class="row" style="margin-top:8px">
+            <div style="flex:1">
+              <label for="frames">Frames</label>
+              <input id="frames" type="text" value="8" />
+            </div>
+            <div style="width:120px"></div>
+          </div>
+          <div class="actions">
+            <button id="genVideoBtn">Generiere Frames</button>
+          </div>
+
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <label>Logs / Status</label>
+          <div id="log" class="log">Bereit.</div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <label>Preview</label>
+          <div id="preview" class="preview" style="min-height:180px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:8px;padding:8px">
+            <div class="small">Kein Bild</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>Text Output</label>
+            <div id="textOut" class="log" style="min-height:80px">—</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>Video Frames</label>
+            <div id="framesOut" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px"></div>
+          </div>
+
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <label>Quick Tests</label>
+          <div class="actions" style="margin-top:8px">
+            <button class="btn-ghost" onclick="quickTest('/test2')">Test2</button>
+            <button class="btn-ghost" onclick="quickTest('/test3')">Test3</button>
+            <button class="btn-ghost" onclick="quickTest('/test4')">Test4</button>
+          </div>
+          <div style="margin-top:10px" class="small">Backend antwortet: <span id="testResp">—</span></div>
+        </div>
+
+      </aside>
     </div>
-    <div id="img-result" class="result"></div>
-  </section>
 
-  <section id="video" class="card">
-    <h2>Text → Short Video</h2>
-    <textarea id="vid-prompt" placeholder="Describe the motion (e.g. 'flying through neon canyon')"></textarea>
-    <div class="controls">
-      <label>Frames <input id="vid-frames" type="number" min="4" max="24" value="8"/></label>
-      <button id="vid-btn">Generate Video</button>
-    </div>
-    <div id="vid-result" class="result"></div>
-  </section>
+    <footer class="small">Tipp: Du kannst diese Datei als <code>index.html</code> speichern und auf einem Webspace hochladen oder lokal öffnen. Für PWA-Install solltest du die Datei über HTTPS hosten.</footer>
+  </div>
 
-  <section id="text" class="card">
-    <h2>Text → Text</h2>
-    <input id="txt-prompt" placeholder="Enter text prompt"/>
-    <button id="txt-btn">Generate Text</button>
-    <div id="txt-result" class="result"></div>
-  </section>
-</main>
+<script>
+const BACKEND = document.getElementById('backendUrl').textContent.trim();
+const logEl = document.getElementById('log');
+const preview = document.getElementById('preview');
+const textOut = document.getElementById('textOut');
+const framesOut = document.getElementById('framesOut');
+let lastImageData = '';
 
-<footer>
-  <p>© 2025 Mosche AI — Gradient Edition</p>
-</footer>
+function log(msg){ const t = document.createElement('div'); t.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; logEl.prepend(t);} 
 
+async function quickTest(path){
+  try{
+    log('QuickTest '+path);
+    const r = await fetch(BACKEND+path);
+    const j = await r.json();
+    document.getElementById('testResp').textContent = JSON.stringify(j);
+    log('QuickTest response: '+JSON.stringify(j));
+  }catch(e){ log('QuickTest error: '+e.message); }
+}
+
+async function generateImage(){
+  const prompt = document.getElementById('prompt').value;
+  const size = document.getElementById('size').value;
+  const model = document.getElementById('model').value;
+  log('Generiere Bild...');
+  try{
+    const res = await fetch(BACKEND+'/generate-image',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt, size, model })
+    });
+    if(!res.ok) throw new Error('Server antwortete mit '+res.status);
+    const j = await res.json();
+    if(j.error) throw new Error(j.error);
+    showImage(j.image);
+    log('Bild erhalten.');
+  }catch(e){ log('Fehler: '+e.message); }
+}
+
+function showImage(dataUrl){
+  lastImageData = dataUrl;
+  preview.innerHTML = '';
+  const img = document.createElement('img'); img.src = dataUrl; preview.appendChild(img);
+}
+
+async function generateText(){
+  const prompt = document.getElementById('textPrompt').value || 'Schreibe einen kurzen Absatz.';
+  log('Generiere Text...');
+  try{
+    const res = await fetch(BACKEND+'/generate-text',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ prompt })});
+    const j = await res.json();
+    if(j.error) throw new Error(j.error || 'Unknown');
+    textOut.textContent = j.text || JSON.stringify(j);
+    log('Text erhalten.');
+  }catch(e){ log('Fehler: '+e.message); }
+}
+
+async function upscale(){
+  const img = document.getElementById('upscaleInput').value.trim();
+  if(!img){ log('Kein Bild zum Upscalen'); return; }
+  log('Upscaling...');
+  try{
+    const res = await fetch(BACKEND+'/upscale',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ image: img })});
+    const j = await res.json();
+    if(j.error) throw new Error(j.error);
+    showImage(j.image);
+    log('Upscale fertig.');
+  }catch(e){ log('Fehler: '+e.message); }
+}
+
+async function generateVideo(){
+  const prompt = document.getElementById('videoPrompt').value || 'Kurzes Video';
+  const frames = Number(document.getElementById('frames').value) || 8;
+  log('Generiere Video-Frames...');
+  try{
+    const res = await fetch(BACKEND+'/generate-video',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ prompt, frames })});
+    const j = await res.json();
+    if(j.error) throw new Error(j.error);
+    framesOut.innerHTML = '';
+    (j.frames || []).forEach(f=>{
+      const img = document.createElement('img'); img.src = f; img.style.borderRadius='6px'; img.style.width='100%';
+      const wrapper = document.createElement('div'); wrapper.appendChild(img); framesOut.appendChild(wrapper);
+    });
+    log('Frames erhalten: '+(j.frames||[]).length);
+  }catch(e){ log('Fehler: '+e.message); }
+}
+
+function downloadImage(){
+  if(!lastImageData){ log('Kein Bild zum Download'); return; }
+  const a = document.createElement('a'); a.href = lastImageData; a.download = 'moscheai-image.png'; document.body.appendChild(a); a.click(); a.remove();
+  log('Download gestartet');
+}
+
+function clearAll(){ document.getElementById('prompt').value=''; preview.innerHTML='<div class="small">Kein Bild</div>'; lastImageData=''; }
+
+// paste from clipboard into upscale input
+async function pasteClipboard(){ try{ const text = await navigator.clipboard.readText(); document.getElementById('upscaleInput').value = text; log('Inhalt eingefügt'); }catch(e){ log('Clipboard nicht verfügbar: '+e.message); }}
+
+// wire buttons
+document.getElementById('genImageBtn').addEventListener('click', generateImage);
+document.getElementById('genTextBtn').addEventListener('click', generateText);
+document.getElementById('upscaleBtn').addEventListener('click', upscale);
+document.getElementById('genVideoBtn').addEventListener('click', generateVideo);
+document.getElementById('downloadBtn').addEventListener('click', downloadImage);
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+document.getElementById('clearTextBtn').addEventListener('click', ()=>{document.getElementById('textPrompt').value='';textOut.textContent='—'});
+document.getElementById('pasteClipboard').addEventListener('click', pasteClipboard);
+
+// quick ready check
+(async()=>{
+  try{ const r = await fetch(BACKEND+'/'); if(r.ok) log('Backend erreichbar: OK'); else log('Backend antwortet: '+r.status); }catch(e){ log('Backend nicht erreichbar: '+e.message); }
+})();
+</script>
 </body>
 </html>
